@@ -76,6 +76,7 @@ users.post("/users/create", async (req, res) => {
 });
 
 users.patch("/users/update/:userId", async (req, res) => {
+  console.log(req.body);
   const { userId } = req.params;
   if (!userId) {
     return res.status(400).send({
