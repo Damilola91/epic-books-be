@@ -1,8 +1,9 @@
 const express = require("express");
 const users = express.Router();
 const UserModel = require("../models/Usersmodel");
+const validateUserMiddleware = require("../middleware/validateUserMiddleware");
 
-users.get("/users", async (req, res) => {
+users.get("/users", async (req, res, next) => {
   try {
     const users = await UserModel.find();
     if (users.length === 0) {
@@ -16,14 +17,11 @@ users.get("/users", async (req, res) => {
       users,
     });
   } catch (error) {
-    res.status(500).send({
-      statusCode: 500,
-      message: "Oops, something went wrong",
-    });
+    next(error);
   }
 });
 
-users.get("/users/:userId", async (req, res) => {
+users.get("/users/:userId", async (req, res, next) => {
   const { userId } = req.params;
   if (!userId) {
     return res.status(400).send({
@@ -41,41 +39,43 @@ users.get("/users/:userId", async (req, res) => {
     }
     res.status(200).send(user);
   } catch (error) {
-    res.status(500).send({
-      statusCode: 500,
-      message: "Oops, something went wrong",
-    });
+    next(error);
   }
 });
 
-users.post("/users/create", async (req, res) => {
-  console.log(req.body);
-  const newUser = new UserModel({
-    name: req.body.name,
-    surname: req.body.surname,
-    dob: new Date(req.body.dob),
-    email: req.body.email,
-    password: req.body.password,
-    username: req.body.username,
-    gender: req.body.gender,
-    address: req.body.address,
-  });
-  try {
-    const user = await newUser.save();
-    res.status(201).send({
-      statusCode: 201,
-      message: "User saved successfulluy",
-      user,
-    });
-  } catch (error) {
-    res.status(500).send({
-      statusCode: 500,
-      message: "Oops, something went wrong",
-    });
-  }
-});
+users.post(
+  "/users/create",
+  [validateUserMiddleware],
+  async (req, res, next) => {
+    console.log(req.body);
+    const { name, surname, dob, email, password, username, gender, address } =
+      req.body;
 
-users.patch("/users/update/:userId", async (req, res) => {
+    const newUser = new UserModel({
+      name,
+      surname,
+      dob: new Date(dob),
+      email,
+      password,
+      username,
+      gender,
+      address,
+    });
+
+    try {
+      const user = await newUser.save();
+      res.status(201).send({
+        statusCode: 201,
+        message: "User saved successfulluy",
+        user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+users.patch("/users/update/:userId", async (req, res, next) => {
   console.log(req.body);
   const { userId } = req.params;
   if (!userId) {
@@ -102,14 +102,11 @@ users.patch("/users/update/:userId", async (req, res) => {
 
     res.status(200).send(result);
   } catch (error) {
-    res.status(500).send({
-      statusCode: 500,
-      message: "Oops, something went wrong",
-    });
+    next(error);
   }
 });
 
-users.delete("/users/delete/:userId", async (req, res) => {
+users.delete("/users/delete/:userId", async (req, res, next) => {
   const { userId } = req.params;
 
   if (!userId) {
@@ -134,10 +131,7 @@ users.delete("/users/delete/:userId", async (req, res) => {
       message: "User deleted successfully",
     });
   } catch (error) {
-    res.status(500).send({
-      statusCode: 500,
-      message: "Oops, something went wrong",
-    });
+    next(error);
   }
 });
 

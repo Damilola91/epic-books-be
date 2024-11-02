@@ -1,6 +1,7 @@
 const express = require("express");
 const login = express.Router();
 const UserModel = require("../models/Usersmodel");
+const TOKEN = require("../Tokens/token");
 
 const isPasswordValid = (userPassword, requestPassword) => {
   if (userPassword === requestPassword) {
@@ -29,9 +30,10 @@ login.post("/login", async (request, response) => {
       });
     }
 
-    response.status(200).send({
+    response.header("Authorized", TOKEN).status(200).send({
       statusCode: 200,
       message: "Ok sei loggato correttamente",
+      token: TOKEN,
     });
   } catch (error) {
     response.status(500).send({
