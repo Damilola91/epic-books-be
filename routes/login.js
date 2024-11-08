@@ -1,45 +1,61 @@
 const express = require("express");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const login = express.Router();
 const UserModel = require("../models/Usersmodel");
-const TOKEN = require("../Tokens/token");
 
-const isPasswordValid = (userPassword, requestPassword) => {
-  if (userPassword === requestPassword) {
-    return true;
-  } else {
-    return false;
-  }
-};
-
-login.post("/login", async (request, response) => {
+login.post("/login", async (req, res, next) => {
   try {
-    const user = await UserModel.findOne({ email: request.body.email });
+    const user = await UserModel.findOne({ email: req.body.email });
     if (!user) {
-      return response.status(404).send({
+      return res.status(404).send({
         statusCode: 404,
         message: "Utente non trovato con l'email fornita",
       });
     }
-    // se user esiste confronto la password del body con quella presente nello user
-    const checkPassword = isPasswordValid(user.password, request.body.password);
-    console.log(checkPassword);
-    if (!checkPassword) {
-      return response.status(403).send({
-        statusCode: 403,
-        message: "La password non è valida",
+
+    const isPasswordValid = await bcrypt.compare(
+      req.body.password,
+      user.password
+    );
+    if (!isPasswordValid) {
+      return res.status(401).send({
+        statusCode: 401,
+        message: "Password or Email not valid",
       });
     }
 
-    response.header("Authorized", TOKEN).status(200).send({
-      statusCode: 200,
-      message: "Ok sei loggato correttamente",
-      token: TOKEN,
-    });
+    const userToken = jwt.sign(
+      {
+        name: user.name,
+        surname: user.surname,
+        email: user.email,
+        _id: user._id,
+        loginType: "normal",
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "120m",
+      }
+    );
+
+    res
+      .header("Authorization", userToken)
+      .status(200)
+      .send({
+        statusCode: 200,
+        message: "Ok sei loggato correttamente",
+        token: userToken,
+        user: {
+          name: user.name,
+
+          surname: user.surname,
+          email: user.email,
+          _id: user._id,
+        },
+      });
   } catch (error) {
-    response.status(500).send({
-      statusCode: 500,
-      message: "Ops something went wrong",
-    });
+    next(error);
   }
 });
 

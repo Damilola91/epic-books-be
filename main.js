@@ -7,6 +7,9 @@ const usersRoute = require("./routes/users");
 const loginRoute = require("./routes/login");
 const booksRoute = require("./routes/books");
 const commentsRoute = require("./routes/comments");
+const emailRoute = require("./routes/email");
+const ordersRoute = require("./routes/order");
+const googleRoute = require("./routes/google");
 const routeNotFoundMiddleWare = require("./middleware/routeNotFoundHandler");
 const requestedTimeMiddleware = require("./middleware/requestedTimeMiddleware");
 const blockIpMiddleware = require("./middleware/blockIpMiddleware");
@@ -16,7 +19,8 @@ const genericErrorHandler = require("./middleware/genericErrorHandler");
 const notAllowedIP = process.env.BANNEDIPS
   ? process.env.BANNEDIPS.split(",")
   : [];
-const PORT = 3061;
+
+const PORT = process.env.PORT || 3061;
 
 const server = express();
 
@@ -28,12 +32,16 @@ server.use(cors());
 server.use(requestedTimeMiddleware);
 server.use("/", usersRoute);
 server.use("/", loginRoute);
+server.use("/", googleRoute);
 server.use("/", booksRoute);
+server.use("/", emailRoute);
 server.use("/", commentsRoute);
+server.use("/", ordersRoute);
 
 server.use(badRequestHandler);
-server.use(routeNotFoundMiddleWare);
+
 server.use(genericErrorHandler);
+server.use(routeNotFoundMiddleWare);
 
 init();
 
