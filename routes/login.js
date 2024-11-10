@@ -59,4 +59,11 @@ login.post("/login", async (req, res, next) => {
   }
 });
 
+login.post("/logout", (req, res) => {
+  res.status(200).send({
+    statusCode: 200,
+    message: "Logout eseguito con successo",
+  });
+});
+
 module.exports = login;

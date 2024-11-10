@@ -5,7 +5,7 @@ const google = express.Router();
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const mongoose = require("mongoose");
+
 const UserModel = require("../models/Usersmodel");
 
 google.use(
