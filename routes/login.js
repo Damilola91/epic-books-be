@@ -31,7 +31,6 @@ login.post("/login", async (req, res, next) => {
         surname: user.surname,
         email: user.email,
         _id: user._id,
-        loginType: "normal",
       },
       process.env.JWT_SECRET,
       {

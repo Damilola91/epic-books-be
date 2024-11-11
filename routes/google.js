@@ -36,37 +36,34 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        const user = await UserModel.findOne({ email: profile._json.email });
+        let user = await UserModel.findOne({ email: profile._json.email });
 
         if (!user) {
-          const { _json: user } = profile;
+          const { _json: profileData } = profile;
           const userToSave = new UserModel({
-            name: user.given_name,
-            surname: user.family_name,
-            email: user.email,
+            name: profileData.given_name,
+            surname: profileData.family_name,
+            email: profileData.email,
             dob: new Date(),
             password: "123456789",
-            username: `${user.given_name}_${user.family_name}`,
+            username: `${profileData.given_name}_${profileData.family_name}`,
+            gender: "",
+            address: "",
           });
           user = await userToSave.save();
         }
+        done(null, user);
       } catch (error) {
         console.log(error);
+        done(error, null);
       }
-      return done(null, profile);
     }
   )
 );
 
 google.get(
   "/auth/google",
-  passport.authenticate("google", { scope: ["email", "profile"] }),
-  (req, res) => {
-    const redirectUrl = `${
-      process.env.FRONTEND_URL
-    }/success?user=${encodeURIComponent(JSON.stringify(req.user))}`;
-    res.redirect(redirectUrl);
-  }
+  passport.authenticate("google", { scope: ["email", "profile"] })
 );
 
 google.get(
@@ -84,20 +81,24 @@ google.get(
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET);
     const redirectUrl = `${
       process.env.FRONTEND_URL
-    }/success/${encodeURIComponent(token)}`;
-    res.redirect(redirectUrl); // Reindirizza alla pagina con il token
+    }/success?token=${encodeURIComponent(token)}`;
+    res.redirect(redirectUrl);
   }
 );
 
 google.get("/logout", (req, res) => {
-  req.logout(() => {
+  req.logout((err) => {
+    if (err) {
+      console.log("Error logging out:", err);
+      return res.redirect("/");
+    }
     req.session.destroy((err) => {
       if (err) {
         console.log("Errore durante la distruzione della sessione:", err);
         return res.redirect("/");
       }
-      res.clearCookie("connect.sid"); // Cancella il cookie della sessione
-      res.redirect(`${process.env.FRONTEND_URL}/login`); // Reindirizza alla pagina di login sul frontend
+      res.clearCookie("connect.sid");
+      res.redirect(`${process.env.FRONTEND_URL}/login`);
     });
   });
 });
