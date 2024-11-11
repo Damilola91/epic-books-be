@@ -47,8 +47,6 @@ passport.use(
             dob: new Date(),
             password: "123456789",
             username: `${profileData.given_name}_${profileData.family_name}`,
-            gender: "",
-            address: "",
           });
           user = await userToSave.save();
         }
