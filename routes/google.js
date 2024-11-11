@@ -41,14 +41,12 @@ passport.use(
         if (!user) {
           const { _json: user } = profile;
           const userToSave = new UserModel({
-            googleId: user.id,
             name: user.given_name,
             surname: user.family_name,
             email: user.email,
             dob: new Date(),
             password: "123456789",
             username: `${user.given_name}_${user.family_name}`,
-            avatar: user.picture,
           });
           user = await userToSave.save();
         }
@@ -62,7 +60,13 @@ passport.use(
 
 google.get(
   "/auth/google",
-  passport.authenticate("google", { scope: ["email", "profile"] })
+  passport.authenticate("google", { scope: ["email", "profile"] }),
+  (req, res) => {
+    const redirectUrl = `${
+      process.env.FRONTEND_URL
+    }/success?user=${encodeURIComponent(JSON.stringify(req.user))}`;
+    res.redirect(redirectUrl);
+  }
 );
 
 google.get(
@@ -75,7 +79,6 @@ google.get(
       surname: user.surname,
       email: user.email,
       _id: user._id,
-      loginType: "google", // Aggiungi il loginType per distinguere Google
     };
 
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET);

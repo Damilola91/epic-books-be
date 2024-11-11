@@ -48,7 +48,6 @@ login.post("/login", async (req, res, next) => {
         token: userToken,
         user: {
           name: user.name,
-
           surname: user.surname,
           email: user.email,
           _id: user._id,
