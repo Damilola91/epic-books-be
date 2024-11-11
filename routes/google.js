@@ -84,7 +84,7 @@ google.get(
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET);
     const redirectUrl = `${
       process.env.FRONTEND_URL
-    }/success?token=${encodeURIComponent(token)}`;
+    }/success/${encodeURIComponent(token)}`;
     res.redirect(redirectUrl); // Reindirizza alla pagina con il token
   }
 );
