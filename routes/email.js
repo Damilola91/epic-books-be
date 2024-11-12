@@ -3,7 +3,7 @@ const email = express.Router();
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SEND_GRID_APIKEY);
 
-email.post("/sendEmail", async (req, res) => {
+email.post("/sendEmail", async (req, res, next) => {
   const { email: userEmail, message } = req.body;
 
   const msg = {
@@ -25,13 +25,7 @@ email.post("/sendEmail", async (req, res) => {
       .status(200)
       .send({ statusCode: 200, message: "Email inviata con successo" });
   } catch (error) {
-    console.error(
-      "Errore nell'invio dell'email:",
-      error.response ? error.response.body : error
-    );
-    res
-      .status(500)
-      .send({ statusCode: 500, message: "Errore nell'invio dell'email" });
+    next(error);
   }
 });
 

@@ -84,7 +84,6 @@ comments.post("/comments/create", async (req, res, next) => {
       savedComment,
     });
   } catch (error) {
-    console.error("Error creating comment:", error);
     next(error);
   }
 });
